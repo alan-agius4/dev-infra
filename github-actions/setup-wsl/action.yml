@@ -113,7 +113,7 @@ runs:
       uses: actions/cache@v4
       with:
         # Path to the NVM directory within the WSL environment.
-        path: ${{ steps.setup-wsl.outputs.wsl_root_unc_path }}\home\runneradmin\.nvm
+        path: ${{ steps.setup-wsl.outputs.wsl_root_unc_path }}\.nvm
         key: ${{ runner.os }}-nvm-${{ hashFiles('.nvmrc') }}-${{ inputs.cache_version }}
         restore-keys: |
           ${{ runner.os }}-nvm-${{ hashFiles('.nvmrc') }}
