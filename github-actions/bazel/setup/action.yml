@@ -21,8 +21,6 @@ runs:
 
     - name: Setup CI bazelrc config
       shell: bash
-      env:
-        BAZELRC_PATH: ${{ inputs.bazelrc }}
       run: |
         # Set the BAZEL_CACHE_PATH environment variable.
         BAZEL_CACHE_PATH="~/.cache/bazel_repo_cache"
@@ -35,8 +33,7 @@ runs:
           BAZEL_CACHE_PATH=$(wsl wslpath -u "$BAZEL_CACHE_PATH")
         fi
 
-        export BAZEL_CACHE_PATH
-        node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
+        node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH"
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
