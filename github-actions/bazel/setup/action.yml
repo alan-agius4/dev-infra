@@ -33,6 +33,8 @@ runs:
           BAZEL_CACHE_PATH=$(wsl wslpath -u "$BAZEL_CACHE_PATH")
         fi
 
+        echo "Bazel cache path is: $BAZEL_CACHE_PATH"
+
         node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH"
 
     - name: Configure action caching for bazel repository cache
