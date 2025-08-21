@@ -19,25 +19,35 @@ runs:
           ~/AppData/Local/bazelisk
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
 
-    - name: Setup CI bazelrc config
-      shell: bash
-      env:
-        BAZELRC_PATH: ${{ inputs.bazelrc }}
+    - name: Setup CI bazelrc config (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
       run: |
-        BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
-        BAZEL_CACHE_PATH_UNIX="$BAZEL_CACHE_PATH"
-        # Check if running on Windows and if WSL is available.
-        # The 'wsl' command is only available on Windows with WSL installed.
-        if [ "$RUNNER_OS" == "Windows" ] && command -v wsl &> /dev/null; then
-          # If on Windows and WSL is available, convert the path using wslpath.
-          # This is need to ensure that Bazel in WSL can use this path.
-          BAZEL_CACHE_PATH_UNIX=$(wsl exec wslpath -u "$BAZEL_CACHE_PATH")
-        fi
+        $BAZEL_CACHE_PATH = "$env:USERPROFILE/.cache/bazel_repo_cache"
+        $BAZEL_CACHE_PATH_UNIX = $BAZEL_CACHE_PATH
+        # Check if WSL is available (command -v not available in pwsh)
+        if (Get-Command "wsl.exe" -ErrorAction SilentlyContinue) {
+          # Use wsl.exe to get the Unix path
+          $BAZEL_CACHE_PATH_UNIX = wsl.exe wslpath -u "$BAZEL_CACHE_PATH"
+        }
 
         echo "BAZEL_CACHE_PATH_UNIX is: $BAZEL_CACHE_PATH_UNIX"
         echo "BAZEL_CACHE_PATH is: $BAZEL_CACHE_PATH"
 
-        BAZEL_REPO_CACHE_UNIX=$BAZEL_CACHE_PATH_UNIX BAZEL_REPO_CACHE=$BAZEL_CACHE_PATH node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
+        # Pass variables as arguments. PowerShell won't perform the same path translation.
+        node "$GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs" "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH_UNIX" "$BAZEL_CACHE_PATH
+
+    - name: Setup CI bazelrc config (Linux)
+      shell: bash
+      if: runner.os != 'Windows'
+      run: |
+        BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
+        BAZEL_CACHE_PATH_UNIX="$BAZEL_CACHE_PATH"
+
+        echo "BAZEL_CACHE_PATH_UNIX is: $BAZEL_CACHE_PATH_UNIX"
+        echo "BAZEL_CACHE_PATH is: $BAZEL_CACHE_PATH"
+
+        node "$GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs" "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH_UNIX" "$BAZEL_CACHE_PATH
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
