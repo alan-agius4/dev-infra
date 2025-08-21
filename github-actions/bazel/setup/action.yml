@@ -12,7 +12,7 @@ inputs:
 outputs:
   bazel_repo_cache_path:
     description: The Bazel repo cache path.
-    value: ${{steps.wsl_paths.outputs.bazel_repo_cache_path}}
+    value: ${{steps.setup_bazel.outputs.bazel_repo_cache_path}}
 
 runs:
   using: composite
@@ -24,23 +24,12 @@ runs:
           ~/.cache/bazelisk
           ~/AppData/Local/bazelisk
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
-    - name: Setup CI bazelrc config on Linux
-      if: runner.os != 'Windows'
-      id: setup_bazel
-      shell: bash
-      run: |
-        bazel_repo_cache_path=~/.cache/bazel_repo_cache
-        echo "bazel_repo_cache_path=$bazel_repo_cache_path" >> $GITHUB_OUTPUT
 
-        # Run the setup script
-        ./setup-bazel.sh "${{ inputs.bazelrc }}" "$bazel_repo_cache_path"
-
-    - name: Setup CI bazelrc config on Windows
-      if: runner.os == 'Windows'
+    - name: Setup CI bazelrc config
       id: setup_bazel
-      shell: wsl-bash {0}
+      shell: ${{ runner.os == 'Windows' && 'wsl-bash {0}' || 'bash' }}
       env:
-        WSLENV: 'GITHUB_OUTPUT/p'
+        WSLENV: ${{ runner.os == 'Windows' && 'GITHUB_OUTPUT/p' || '' }}
       run: |
         bazel_repo_cache_path=~/.cache/bazel_repo_cache
         echo "bazel_repo_cache_path=$bazel_repo_cache_path" >> $GITHUB_OUTPUT
