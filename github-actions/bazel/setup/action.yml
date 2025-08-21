@@ -8,6 +8,7 @@ inputs:
     description: |
       The `bazelrc` file location to add the `repository_cache` flag to. Defaults
       to .bazelrc.user
+
 runs:
   using: composite
   steps:
@@ -20,71 +21,17 @@ runs:
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
 
     - name: Setup CI bazelrc config
+      run: node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
+      env:
+        BAZELRC_PATH: ${{ inputs.bazelrc }}
       shell: bash
-      run: |
-        BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
-        BAZELRC_PATH="${{ inputs.bazelrc }}"
-
-        # Create the directory. `mkdir -p` works on both Linux and the bash shell on Windows.
-        mkdir -p "$BAZEL_CACHE_PATH"
-
-        # Check for WSL on Windows and convert the path if necessary
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          if command -v wsl.exe &> /dev/null; then
-            echo "Detected WSL on Windows. Converting cache path to Unix format."
-            BAZEL_CACHE_PATH=$(wsl.exe wslpath -u "$BAZEL_CACHE_PATH")
-          fi
-        fi
-
-        # Append the configuration to the bazelrc file
-        cat <<EOT >> "$BAZELRC_PATH"
-        # Print all the options that apply to the build.
-        build --announce_rc
-
-        # Avoids re-downloading NodeJS/browsers all the time.
-        build --repository_cache=$BAZEL_CACHE_PATH
-
-        # More details on failures
-        build --verbose_failures=true
-
-        # CI supports colors but Bazel does not detect it.
-        common --color=yes
-        EOT
-
-    # - name: Setup CI bazelrc config (Windows)
-    #   shell: pwsh
-    #   if: runner.os == 'Windows'
-    #   run: |
-    #     $BAZEL_CACHE_PATH = "$env:USERPROFILE/.cache/bazel_repo_cache"
-    #     $BAZEL_CACHE_PATH_UNIX = $BAZEL_CACHE_PATH
-    #     # Check if WSL is available (command -v not available in pwsh)
-    #     if (Get-Command "wsl.exe" -ErrorAction SilentlyContinue) {
-    #       # Use wsl.exe to get the Unix path
-    #       $BAZEL_CACHE_PATH_UNIX = wsl.exe wslpath -u "$BAZEL_CACHE_PATH"
-    #     }
-
-    #     echo "BAZEL_CACHE_PATH_UNIX is: $BAZEL_CACHE_PATH_UNIX"
-    #     echo "BAZEL_CACHE_PATH is: $BAZEL_CACHE_PATH"
-
-    #     # Pass variables as arguments. PowerShell won't perform the same path translation.
-    #     node "$GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs" "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH_UNIX" "$BAZEL_CACHE_PATH
-
-    # - name: Setup CI bazelrc config (Linux)
-    #   shell: bash
-    #   if: runner.os != 'Windows'
-    #   run: |
-    #     BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
-    #     BAZEL_CACHE_PATH_UNIX="$BAZEL_CACHE_PATH"
-
-    #     echo "BAZEL_CACHE_PATH_UNIX is: $BAZEL_CACHE_PATH_UNIX"
-    #     echo "BAZEL_CACHE_PATH is: $BAZEL_CACHE_PATH"
-
-    #     node "$GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs" "${{ inputs.bazelrc }}" "$BAZEL_CACHE_PATH_UNIX" "$BAZEL_CACHE_PATH
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
-        path: ~/.cache/bazel_repo_cache
-        key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel') }}
+        # Note: Bazel repository cache is located in system locations and cannot use
+        # a shared cache between different runner operating systems.
+        path: '~/.cache/bazel_repo_cache'
+        key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/WORKSPACE') }}
         restore-keys: |
           bazel-cache-${{ runner.os }}-
