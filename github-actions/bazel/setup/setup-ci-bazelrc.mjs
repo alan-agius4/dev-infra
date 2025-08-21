@@ -5,12 +5,12 @@ import fs from 'fs';
 import assert from 'node:assert';
 
 const BAZELRC_PATH = process.argv[2];
-const BAZEL_REPO_CACHE = process.argv[3];
+const BAZEL_REPO_CACHE_UNIX = process.argv[3];
+const BAZEL_REPO_CACHE = process.argv[4];
 
 assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE environment variable is not defined.');
+assert(BAZEL_REPO_CACHE_UNIX, 'BAZEL_REPO_CACHE_UNIX environment variable is not defined.');
 assert(BAZELRC_PATH, 'BAZELRC_PATH environment variable is not defined.');
-
-const escapedCachePath = BAZEL_REPO_CACHE.replace(/\\/g, '\\\\');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.
@@ -19,7 +19,7 @@ const bazelRcContent = `
 build --announce_rc
 
 # Avoids re-downloading NodeJS/browsers all the time.
-build --repository_cache=${escapedCachePath}
+build --repository_cache=${BAZEL_REPO_CACHE_UNIX}
 
 # More details on failures
 build --verbose_failures=true
