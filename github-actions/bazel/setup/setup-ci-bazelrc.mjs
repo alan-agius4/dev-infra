@@ -1,6 +1,5 @@
 // Resolves the cache path to a system absolute path. This is necessary
-// for Bazel to properly pick up the path. Note also that backslashes
-// in the bazelrc file need to be escaled as otherwise those would escape
+// for Bazel to properly pick up the path.
 
 import fs from 'node:fs/promises';
 import assert from 'node:assert';
