@@ -17,7 +17,7 @@ runs:
       with:
         path: |
           ~/.cache/bazelisk
-          \%LocalAppData\%/bazelisk
+          ~/AppData/Local/bazelisk
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
 
     - name: Setup CI bazelrc config
