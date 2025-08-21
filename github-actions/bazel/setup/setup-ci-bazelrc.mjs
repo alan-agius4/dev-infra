@@ -8,9 +8,10 @@ import assert from 'node:assert';
 const BAZEL_REPO_CACHE = process.argv[2];
 const BAZELRC_PATH = process.argv[3];
 
-// Check to ensure the arguments were provided
-assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE argument is not defined.');
-assert(BAZELRC_PATH, 'BAZELRC_PATH argument is not defined.');
+assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE environment variable is not defined.');
+assert(BAZELRC_PATH, 'BAZELRC_PATH environment variable is not defined.');
+
+const escapedCachePath = BAZEL_REPO_CACHE.replace(/\\/g, '\\\\');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.
