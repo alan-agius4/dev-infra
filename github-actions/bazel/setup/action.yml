@@ -31,7 +31,7 @@ runs:
       env:
         WSLENV: ${{ runner.os == 'Windows' && 'GITHUB_OUTPUT/p' || '' }}
       run: |
-        BAZEL_CACHE_PATH=~/.cache/bazel_repo_cache
+        BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
         echo "bazel_repo_cache_path=$BAZEL_CACHE_PATH" >> $GITHUB_OUTPUT
 
     - name: Setup CI bazelrc config
