@@ -27,6 +27,8 @@ runs:
 
     - name: Set Bazel repository cache path on Windows
       if: runner.os == 'Windows'
+      env:
+        WSLENV: 'GITHUB_ENV/p'
       shell: wsl-bash {0}
       run: echo "BAZEL_REPO_CACHE=~/.cache/bazel_repo_cache" >> $GITHUB_ENV
 
