@@ -28,7 +28,7 @@ build --verbose_failures=true
 common --color=yes
 `;
 
-await fs.promises.mkdir(cachePath, {recursive: true});
+await fs.promises.mkdir(BAZEL_REPO_CACHE, {recursive: true});
 await fs.promises.appendFile(BAZELRC_PATH, bazelRcContent);
 
 console.info('Appended to the Bazel RC file:\n\n');
