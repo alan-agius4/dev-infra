@@ -1,16 +1,13 @@
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+
 // Resolves the cache path to a system absolute path. This is necessary
-// for Bazel to properly pick up the path.
-
-import fs from 'node:fs/promises';
-import assert from 'node:assert';
-
-const BAZELRC_PATH = process.argv[2];
-const BAZEL_REPO_CACHE_UNIX = process.argv[3];
-const BAZEL_REPO_CACHE = process.argv[4];
-
-assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE argument variable is not defined.');
-assert(BAZEL_REPO_CACHE_UNIX, 'BAZEL_REPO_CACHE_UNIX argument variable is not defined.');
-assert(BAZELRC_PATH, 'BAZELRC_PATH argument variable is not defined.');
+// for Bazel to properly pick up the path. Note also that backslashes
+// in the bazelrc file need to be escaled as otherwise those would escape
+// followed characters that weren't supposed to be escaped.
+const cachePath = path.join(os.homedir(), '.cache/bazel_repo_cache');
+const escapedCachePath = cachePath.replace(/\\/g, '\\\\');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.
@@ -19,7 +16,7 @@ const bazelRcContent = `
 build --announce_rc
 
 # Avoids re-downloading NodeJS/browsers all the time.
-build --repository_cache=${BAZEL_REPO_CACHE_UNIX}
+build --repository_cache=${escapedCachePath}
 
 # More details on failures
 build --verbose_failures=true
@@ -28,10 +25,8 @@ build --verbose_failures=true
 common --color=yes
 `;
 
-await Promise.resolve([
-  fs.mkdir(BAZEL_REPO_CACHE, {recursive: true}),
-  fs.appendFile(BAZELRC_PATH, bazelRcContent),
-]);
+await fs.promises.mkdir(cachePath, {recursive: true});
+await fs.promises.appendFile(process.env.BAZELRC_PATH, bazelRcContent);
 
 console.info('Appended to the Bazel RC file:\n\n');
 console.info(bazelRcContent);
