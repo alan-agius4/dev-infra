@@ -2,6 +2,7 @@
 // for Bazel to properly pick up the path. Note also that backslashes
 // in the bazelrc file need to be escaled as otherwise those would escape
 
+import fs from 'node:fs/promises';
 import assert from 'node:assert';
 
 const BAZELRC_PATH = process.argv[2];
@@ -29,8 +30,8 @@ common --color=yes
 `;
 
 await Promise.resolve([
-  fs.promises.mkdir(BAZEL_REPO_CACHE, {recursive: true}),
-  fs.promises.appendFile(BAZELRC_PATH, bazelRcContent),
+  fs.mkdir(BAZEL_REPO_CACHE, {recursive: true}),
+  fs.appendFile(BAZELRC_PATH, bazelRcContent),
 ]);
 
 console.info('Appended to the Bazel RC file:\n\n');
