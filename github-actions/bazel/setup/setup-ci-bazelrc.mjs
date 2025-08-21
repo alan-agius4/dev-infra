@@ -1,14 +1,16 @@
 // Resolves the cache path to a system absolute path. This is necessary
 // for Bazel to properly pick up the path. Note also that backslashes
 // in the bazelrc file need to be escaled as otherwise those would escape
-
+import fs from 'fs';
 import assert from 'node:assert';
 
 // followed characters that weren't supposed to be escaped.
-const cachePath = process.env['BAZEL_REPO_CACHE'];
-const escapedCachePath = cachePath.replace(/\\/g, '\\\\');
+const BAZEL_REPO_CACHE = process.env['BAZEL_REPO_CACHE'];
+const BAZELRC_PATH = process.env['BAZELRC_PATH'];
+const escapedCachePath = BAZEL_REPO_CACHE.replace(/\\/g, '\\\\');
 
-assert(cachePath, 'BAZEL_REPO_CACHE environment variable is not defined.');
+assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE environment variable is not defined.');
+assert(BAZELRC_PATH, 'BAZELRC_PATH environment variable is not defined.');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.
@@ -27,7 +29,7 @@ common --color=yes
 `;
 
 await fs.promises.mkdir(cachePath, {recursive: true});
-await fs.promises.appendFile(process.env.BAZELRC_PATH, bazelRcContent);
+await fs.promises.appendFile(BAZELRC_PATH, bazelRcContent);
 
 console.info('Appended to the Bazel RC file:\n\n');
 console.info(bazelRcContent);
