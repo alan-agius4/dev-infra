@@ -30,7 +30,7 @@ runs:
         if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]] && command -v wsl &> /dev/null; then
           # If on Windows and WSL is available, convert the path using wslpath.
           # This is need to ensure that Bazel in WSL can use this path.
-          BAZEL_CACHE_PATH=$(wsl wslpath -u "$BAZEL_CACHE_PATH")
+          BAZEL_CACHE_PATH=$(wsl exec wslpath -u "$BAZEL_CACHE_PATH")
         fi
 
         echo "Bazel cache path is: $BAZEL_CACHE_PATH"
