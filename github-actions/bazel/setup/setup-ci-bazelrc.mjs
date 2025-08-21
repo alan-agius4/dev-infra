@@ -4,9 +4,8 @@
 import fs from 'fs';
 import assert from 'node:assert';
 
-// followed characters that weren't supposed to be escaped.
-const BAZEL_REPO_CACHE = process.argv[2];
-const BAZELRC_PATH = process.argv[3];
+const BAZELRC_PATH = process.argv[2];
+const BAZEL_REPO_CACHE = process.argv[3];
 
 assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE environment variable is not defined.');
 assert(BAZELRC_PATH, 'BAZELRC_PATH environment variable is not defined.');

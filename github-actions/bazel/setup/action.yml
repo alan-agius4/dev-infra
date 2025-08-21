@@ -22,12 +22,11 @@ runs:
     - name: Setup CI bazelrc config
       shell: bash
       run: |
-        # Set the BAZEL_CACHE_PATH environment variable.
-        BAZEL_CACHE_PATH="~/.cache/bazel_repo_cache"
+        BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
 
         # Check if running on Windows and if WSL is available.
         # The 'wsl' command is only available on Windows with WSL installed.
-        if [["$RUNNER_OS" == "Windows"]] && command -v wsl &> /dev/null; then
+        if [ "$RUNNER_OS" == "Windows" ] && command -v wsl &> /dev/null; then
           # If on Windows and WSL is available, convert the path using wslpath.
           # This is need to ensure that Bazel in WSL can use this path.
           BAZEL_CACHE_PATH=$(wsl exec wslpath -u "$BAZEL_CACHE_PATH")
