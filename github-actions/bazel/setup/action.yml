@@ -8,12 +8,6 @@ inputs:
     description: |
       The `bazelrc` file location to add the `repository_cache` flag to. Defaults
       to .bazelrc.user
-
-outputs:
-  bazel_repo_cache_path:
-    description: The Bazel repo cache path.
-    value: ${{steps.setup_bazel.outputs.bazel_repo_cache_path}}
-
 runs:
   using: composite
   steps:
@@ -26,20 +20,28 @@ runs:
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
 
     - name: Setup CI bazelrc config
-      id: setup_bazel
-      shell: ${{ runner.os == 'Windows' && 'wsl-bash {0}' || 'bash' }}
+      shell: bash
       env:
         BAZELRC_PATH: ${{ inputs.bazelrc }}
-        WSLENV: ${{ runner.os == 'Windows' && 'GITHUB_OUTPUT/p' || '' }}
       run: |
-        BAZEL_CACHE_PATH=$HOME/.cache/bazel_repo_cache
-        echo "bazel_repo_cache_path=$BAZEL_CACHE_PATH" >> $GITHUB_OUTPUT
+        # Set the BAZEL_CACHE_PATH environment variable.
+        BAZEL_CACHE_PATH="~/.cache/bazel_repo_cache"
+
+        # Check if running on Windows and if WSL is available.
+        # The 'wsl' command is only available on Windows with WSL installed.
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]] && command -v wsl &> /dev/null; then
+          # If on Windows and WSL is available, convert the path using wslpath.
+          # This is need to ensure that Bazel in WSL can use this path.
+          BAZEL_CACHE_PATH=$(wsl wslpath -u "$BAZEL_CACHE_PATH")
+        fi
+
+        export BAZEL_CACHE_PATH
         node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
-        path: ${{ steps.setup_bazel.outputs.bazel_repo_cache_path }}
+        path: ~/.cache/bazel_repo_cache
         key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel') }}
         restore-keys: |
           bazel-cache-${{ runner.os }}-
