@@ -4,9 +4,9 @@
 import fs from 'fs';
 import assert from 'node:assert';
 
-const BAZELRC_PATH = process.argv[2];
-const BAZEL_REPO_CACHE_UNIX = process.argv[3];
-const BAZEL_REPO_CACHE = process.argv[4];
+const BAZELRC_PATH = process.env.BAZELRC_PATH;
+const BAZEL_REPO_CACHE_UNIX = process.env.BAZEL_REPO_CACHE_UNIX;
+const BAZEL_REPO_CACHE = process.env.BAZEL_REPO_CACHE;
 
 assert(BAZEL_REPO_CACHE, 'BAZEL_REPO_CACHE environment variable is not defined.');
 assert(BAZEL_REPO_CACHE_UNIX, 'BAZEL_REPO_CACHE_UNIX environment variable is not defined.');
