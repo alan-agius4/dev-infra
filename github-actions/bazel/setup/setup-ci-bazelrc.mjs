@@ -29,7 +29,7 @@ common --color=yes
 `;
 
 await Promise.resolve([
-  fs.promises.mkdir(cachePath, {recursive: true}),
+  fs.promises.mkdir(BAZEL_REPO_CACHE, {recursive: true}),
   fs.promises.appendFile(BAZELRC_PATH, bazelRcContent),
 ]);
 
