@@ -1,13 +1,14 @@
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
-
 // Resolves the cache path to a system absolute path. This is necessary
 // for Bazel to properly pick up the path. Note also that backslashes
 // in the bazelrc file need to be escaled as otherwise those would escape
+
+import assert from 'node:assert';
+
 // followed characters that weren't supposed to be escaped.
-const cachePath = path.join(os.homedir(), '.cache/bazel_repo_cache');
+const cachePath = process.env['BAZEL_REPO_CACHE'];
 const escapedCachePath = cachePath.replace(/\\/g, '\\\\');
+
+assert(cachePath, 'BAZEL_REPO_CACHE environment variable is not defined.');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.

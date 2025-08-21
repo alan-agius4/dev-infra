@@ -108,40 +108,37 @@ runs:
         echo "repo=$repo_path" >> $GITHUB_OUTPUT
         echo "Repo path is: $repo_path"
 
-    # Temporary disable the cache action because the post step takes up to 10mins in the CLI and also there are several errors:
-    # "C:\Program Files\Git\usr\bin\tar.exe" --posix -cf cache.tzst --exclude cache.tzst -P -C C:/a/angular-cli/angular-cli --files-from manifest.txt --force-local --use-compress-program "zstd -T0"
-    # /usr/bin/tar: ../../../wsl_root/root/.nvm/versions/node/v22.18.0/bin/corepack: Cannot stat: Input/output error
-    # /usr/bin/tar: ../../../wsl_root/root/.nvm/versions/node/v22.18.0/bin/pnpx: Cannot stat: Input/output error
-    # /usr/bin/tar: ../../../wsl_root/root/.nvm/versions/node/v22.18.0/bin/npm: Cannot stat: Input/output error
-    # /usr/bin/tar: ../../../wsl_root/root/.nvm/versions/node/v22.18.0/bin/npx: Cannot stat: Input/output error
-    # /usr/bin/tar: ../../../wsl_root/root/.nvm/versions/node/v22.18.0/bin/pnpm: Cannot stat: Input/output error
-    # /usr/bin/tar: Exiting with failure status due to previous errors
-    # Warning: Failed to save: "C:\Program failed with error: The process 'C:\Program Files\Git\usr\bin\tar.exe' failed with exit code 2
+    - name: Cache NVM and installed Node versions
+      id: nvm-cache
+      uses: actions/cache@v4
+      with:
+        # Path to the NVM directory within the WSL environment.
+        path: ${{ steps.setup-wsl.outputs.wsl_root_unc_path }}\home\runneradmin\.nvm
+        key: ${{ runner.os }}-nvm-${{ hashFiles('.nvmrc') }}-${{ inputs.cache_version }}
+        restore-keys: |
+          ${{ runner.os }}-nvm-${{ hashFiles('.nvmrc') }}
+          ${{ runner.os }}-nvm-
 
-    # - name: Cache for nvm, pnpm profile caches.
-    #   uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-    #   with:
-    #     path: |
-    #       C:\\wsl_root\\root\\.nvm\\versions
-    #       C:\\wsl_root\\root\\.local\\share\\pnpm\\store\\
-    #     key: "${{ runner.os }}-wsl-cache-v${{inputs.cache_version}}-${{hashFiles('**/.nvmrc')}}-${{hashFiles('**/pnpm-lock.yaml')}}"
-    #     restore-keys: |
-    #       ${{ runner.os }}-wsl-cache-v${{inputs.cache_version}}-
-    - name: Setup nvm
+    - name: Setup NVM, Node, and pnpm (in WSL)
       shell: wsl-bash {0}
       run: |
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+        # Use the cache-hit output to determine if NVM needs to be installed.
+        if [[ "${{ steps.nvm-cache.outputs.cache-hit }}" != 'true' ]]; then
+          echo "Cache miss. Installing NVM..."
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+        fi
+
+        # Source NVM in all cases to ensure it is available.
         export NVM_DIR="$HOME/.nvm"
         # Note: Specify `--install` due to https://github.com/nvm-sh/nvm/issues/1985.
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
-    - name: Installing Node and pnpm (in WSL)
-      run: |
-        # Note: this is needed to load NVM in this step otherwise nvm will not be found.
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
+        # Change to the repository path and install dependencies.
         cd ${{steps.disk_path.outputs.repo}}
 
+        # Install the Node.js version specified in .nvmrc.
+        # This will either use the cached version or install it.
         nvm install
+
+        # Install pnpm globally.
         npm i -g pnpm@10
-      shell: wsl-bash {0}

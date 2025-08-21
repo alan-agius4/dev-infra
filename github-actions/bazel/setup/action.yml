@@ -20,18 +20,34 @@ runs:
           ~/AppData/Local/bazelisk
         key: bazel-version-${{ hashFiles('**/.bazelversion') }}
 
-    - name: Setup CI bazelrc config
-      run: node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
-      env:
-        BAZELRC_PATH: ${{ inputs.bazelrc }}
+    - name: Set Bazel repository cache path on Linux
+      if: runner.os != 'Windows'
       shell: bash
+      run: |
+        echo "BAZEL_REPO_CACHE=~/.cache/bazel_repo_cache" >> $GITHUB_ENV
+
+    - name: Set Bazel repository cache path on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        echo "BAZEL_REPO_CACHE=~/.cache/bazel_repo_cache" >> $GITHUB_ENV
+
+    - name: Setup CI bazelrc config on Linux
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        ./setup-bazel.sh "${{ inputs.bazelrc }}" "${{ env.BAZEL_REPO_CACHE }}"
+
+    - name: Setup CI bazelrc config on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        ./setup-bazel.sh "${{ inputs.bazelrc }}" "${{ env.BAZEL_REPO_CACHE }}"
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
-        # Note: Bazel repository cache is located in system locations and cannot use
-        # a shared cache between different runner operating systems.
-        path: '~/.cache/bazel_repo_cache'
+        path: ${{ env.BAZEL_REPO_CACHE }}
         key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel') }}
         restore-keys: |
           bazel-cache-${{ runner.os }}-
