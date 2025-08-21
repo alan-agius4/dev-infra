@@ -23,7 +23,7 @@ runs:
       shell: bash
       run: |
         BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
-        BAZEL_CACHE_PATH_UNIX = "$BAZEL_CACHE_PATH";
+        BAZEL_CACHE_PATH_UNIX="$BAZEL_CACHE_PATH"
         # Check if running on Windows and if WSL is available.
         # The 'wsl' command is only available on Windows with WSL installed.
         if [ "$RUNNER_OS" == "Windows" ] && command -v wsl &> /dev/null; then
