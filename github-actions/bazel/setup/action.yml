@@ -22,7 +22,7 @@ runs:
     - name: Setup CI bazelrc config
       shell: bash
       env:
-        BAZELRC_PATH: ${{inputs.bazelrc}}
+        BAZELRC_PATH: ${{ inputs.bazelrc }}
       run: |
         BAZEL_CACHE_PATH="$HOME/.cache/bazel_repo_cache"
         BAZEL_CACHE_PATH_UNIX="$BAZEL_CACHE_PATH"
