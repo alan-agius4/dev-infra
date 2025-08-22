@@ -33,7 +33,7 @@ common --color=yes
 
 await Promise.all([
   fs.promises.mkdir(cachePath, {recursive: true}),
-  fs.promises.appendFile(process.env.BAZELRC_PATH, bazelRcContent),
+  fs.promises.appendFile(bazelRcPath, bazelRcContent),
 ]);
 
 console.info(`Appended to the Bazel RC file (${bazelRcPath}):\n\n`);
