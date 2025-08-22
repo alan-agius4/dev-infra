@@ -1,13 +1,19 @@
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
+import assert from 'node:assert';
+import fs from 'node:fs';
 
-// Resolves the cache path to a system absolute path. This is necessary
 // for Bazel to properly pick up the path. Note also that backslashes
 // in the bazelrc file need to be escaled as otherwise those would escape
 // followed characters that weren't supposed to be escaped.
-const cachePath = path.join(os.homedir(), '.cache/bazel_repo_cache');
-const escapedCachePath = cachePath.replace(/\\/g, '/');
+const cachePath = process.argv[2];
+const bazelRcPath = process.argv[3];
+
+assert(bazelRcPath, 'bazelRcPath cannot be undefined.');
+assert(cachePath, 'cachePath cannot be undefined.');
+
+// Remove the cache WSL path D:/wsl_root/root/.cache -> root/.cache
+// Bazel run run inside WSL, and make it can use the linux path directly.
+let normalizedCachePath = cachePath.replace(/\\/g, '/');
+normalizedCachePath = normalizedCachePath.replace(/^[A-Za-z]\:\/wsl_root\//, '/');
 
 const bazelRcContent = `
 # Print all the options that apply to the build.
@@ -16,8 +22,7 @@ const bazelRcContent = `
 build --announce_rc
 
 # Avoids re-downloading NodeJS/browsers all the time.
-# Replace path to make it compatable with WSL
-build --repository_cache=${escapedCachePath.replace(/c:\//i, '/mnt/c/')}
+build --repository_cache=${normalizedCachePath}
 
 # More details on failures
 build --verbose_failures=true
@@ -26,8 +31,10 @@ build --verbose_failures=true
 common --color=yes
 `;
 
-await fs.promises.mkdir(cachePath, {recursive: true});
-await fs.promises.appendFile(process.env.BAZELRC_PATH, bazelRcContent);
+await Promise.all([
+  fs.promises.mkdir(cachePath, {recursive: true}),
+  fs.promises.appendFile(process.env.BAZELRC_PATH, bazelRcContent),
+]);
 
 console.info('Appended to the Bazel RC file:\n\n');
 console.info(bazelRcContent);

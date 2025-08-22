@@ -8,6 +8,10 @@ inputs:
     description: |
       The `bazelrc` file location to add the `repository_cache` flag to. Defaults
       to .bazelrc.user
+  cache_dir:
+    default: ~/.cache
+    description: |
+      The location of the cache directory.
 
 runs:
   using: composite
@@ -16,22 +20,24 @@ runs:
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
         path: |
-          ~/.cache/bazelisk
+          ${{ inputs.cache_dir }}/bazelisk
           ~/AppData/Local/bazelisk
         key: bazel-version-${{ runner.os }}-${{ hashFiles('**/.bazelversion') }}
 
     - name: Setup CI bazelrc config
-      run: node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs
+      shell: bash
       env:
         BAZELRC_PATH: ${{ inputs.bazelrc }}
-      shell: bash
+      run: |
+        bazel_cache_path="${{ inputs.cache_dir }}/bazel_repo_cache"
+        node $GITHUB_ACTION_PATH/setup-ci-bazelrc.mjs "$bazel_cache_path"
 
     - name: Configure action caching for bazel repository cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
         # Note: Bazel repository cache is located in system locations and cannot use
         # a shared cache between different runner operating systems.
-        path: '~/.cache/bazel_repo_cache'
-        key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel.lock') }}
+        path: '${{ inputs.cache_dir }}/bazel_repo_cache'
+        key: bazel-cache-${{ runner.os }}-22-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel.lock') }}
         restore-keys: |
-          bazel-cache-${{ runner.os }}-
+          bazel-cache-${{ runner.os }}-22
