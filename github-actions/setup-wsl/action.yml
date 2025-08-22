@@ -11,10 +11,6 @@ inputs:
     description: Networking mode for the WSL config
     default: NAT
     required: false
-  cache_version:
-    description: Version that can be used to invalidate the cache
-    default: 2
-    required: false
 
 outputs:
   cmd_path:
@@ -115,9 +111,9 @@ runs:
           ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.nvm/
           ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.npm/
           ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.local/share/pnpm/store
-        key: "wsl-cache-v${{ inputs.cache_version }}-${{hashFiles('**/.nvmrc')}}-${{ hashFiles('**/pnpm-lock.yaml') }}"
+        key: "wsl-cache-${{hashFiles('**/.nvmrc')}}-${{ hashFiles('**/pnpm-lock.yaml') }}"
         restore-keys: |
-          wsl-cache-v${{ inputs.cache_version }}-
+          wsl-cache
 
     - name: Setup nvm and install Node.js
       shell: wsl-bash {0}
@@ -131,33 +127,3 @@ runs:
 
         # Load nvm and install the correct Node.js version from .nvmrc
         . "$NVM_DIR/nvm.sh" --install
-
-    # - name: Cache for nvm, pnpm profile caches.
-    #   uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-    #   with:
-    #     path: |
-    #       ${{steps.init_wsl.outputs.wsl_root_path}}/root/.nvm/cache
-    #       ${{steps.init_wsl.outputs.wsl_root_path}}/root/.nvm/cache
-    #     key: "wsl-cache-v${{inputs.cache_version}}-${{hashFiles('**/.nvmrc')}}-${{hashFiles('**/pnpm-lock.yaml')}}"
-    #     restore-keys: |
-    #       wsl-cache-v${{inputs.cache_version}}-
-
-    # - name: Setup nvm
-    #   shell: wsl-bash {0}
-    #   run: |
-    #     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-    #     export NVM_DIR="$HOME/.nvm"
-    #     # Note: Specify `--install` due to https://github.com/nvm-sh/nvm/issues/1985.
-    #     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
-
-    - name: Installing Node and pnpm (in WSL)
-      run: |
-        # Note: this is needed to load NVM in this step otherwise nvm will not be found.
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-        cd ${{steps.disk_path.outputs.repo}}
-
-        nvm install
-        npm i -g pnpm@10
-      shell: wsl-bash {0}
