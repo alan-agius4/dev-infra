@@ -73,7 +73,7 @@ runs:
         git_bin=$(which git)
         git_bin_wsl_path=$(wsl exec wslpath -u "$git_bin")
 
-        echo "wsl_home=$(wslpath -u "$HOME")" >> $GITHUB_OUTPUT
+        echo "wsl_home=$(wsl exec wslpath -u "$HOME")" >> $GITHUB_OUTPUT
         echo "cmd_path=$cmd_wsl_path" >> $GITHUB_OUTPUT
         echo "npm_path=$npm_wls_path" >> $GITHUB_OUTPUT
         echo "tmp_path=$tmp_dir_wsl_path" >> $GITHUB_OUTPUT
@@ -125,8 +125,6 @@ runs:
       run: |
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         cd ${{steps.disk_path.outputs.repo}}
         nvm install
         npm i -g pnpm@10
