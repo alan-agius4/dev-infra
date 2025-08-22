@@ -109,7 +109,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/wsl_nvm_cache.tar.gz
-        key: nvm-cache-${{hashFiles('**/.nvmrc')}}
+        key: wsl-nvm-cache-${{hashFiles('**/.nvmrc')}}
 
     - name: Extract NVM inside WSL
       if: steps.cache-nvm.outputs.cache-hit == 'true'
