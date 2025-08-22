@@ -134,6 +134,7 @@ runs:
     - name: Archive NVM inside WSL
       shell: wsl-bash {0}
       run: |
-        mkdir ${{steps.wsl_paths.outputs.wsl_home}}/.cache
-        cache_archive="${{steps.wsl_paths.outputs.wsl_home}}/.cache/wsl_nvm_cache.tar.gz"
+        wsl_home="${{steps.wsl_paths.outputs.wsl_home}}"
+        mkdir -p "${wsl_home}/.cache"
+        cache_archive="${wsl_home}/.cache/wsl_nvm_cache.tar.gz"
         tar -czf "$cache_archive" -C ~/.nvm .
