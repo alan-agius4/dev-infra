@@ -135,6 +135,7 @@ runs:
 
     - name: Archive NVM inside WSL
       shell: wsl-bash {0}
+      if: steps.cache-nvm.outputs.cache-hit != 'true'
       run: |
         wsl_home="${{steps.wsl_paths.outputs.wsl_home}}"
         mkdir -p "${wsl_home}/.cache"
