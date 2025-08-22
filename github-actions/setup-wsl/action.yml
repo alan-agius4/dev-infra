@@ -111,19 +111,11 @@ runs:
         path: wsl_nvm_cache.tar.gz
         key: nvm-cache-${{ runner.os }}-${{hashFiles('**/.nvmrc')}}
 
-    - name: Extract npm cache inside WSL
+    - name: Extract NVM inside WSL
       if: steps.cache-nvm.outputs.cache-hit == 'true'
       run: |
         mkdir -p ~/.nvm
         tar -xzf /mnt/c/Users/runneradmin/wsl_nvm_cache.tar.gz -C ~/.nvm
-        nvm install
-      shell: wsl-bash {0}
-
-    - name: Install dependencies in WSL
-      if: steps.cache-nvm.outputs.cache-hit == 'true'
-      run: |
-        cd /mnt/c/Users/runneradmin/work/${{ github.repository }}
-        nvm install
       shell: wsl-bash {0}
 
     - name: Download NVM
@@ -148,7 +140,7 @@ runs:
         nvm install
         npm i -g pnpm@10
 
-    - name: Archive npm cache inside WSL
+    - name: Archive NVM inside WSL
       run: |
         tar -czf /mnt/c/Users/runneradmin/wsl_nvm_cache.tar.gz -C ~/.nvm .
       shell: wsl-bash {0}
