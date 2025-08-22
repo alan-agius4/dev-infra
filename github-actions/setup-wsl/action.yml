@@ -126,6 +126,9 @@ runs:
     - name: Setup NVM
       shell: wsl-bash {0}
       run: |
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
         cd ${{steps.disk_path.outputs.repo}}
         nvm install
         npm i -g pnpm@10
