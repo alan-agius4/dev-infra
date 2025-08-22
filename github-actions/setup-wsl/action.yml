@@ -38,13 +38,8 @@ outputs:
 runs:
   using: composite
   steps:
-    # Configure the WSL VM.
-    # Note: `memory` by default is 50% of the Windows host machine. We want to try
-    # a higher percentage to leverage more of the GitHub Windows machines.
-    # They have 16GB by default. See: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners.
     - uses: Vampire/setup-wsl@6a8db447be7ed35f2f499c02c6e60ff77ef11278 # v6.0.0
       with:
-        # Workaround for https://github.com/Vampire/setup-wsl/issues/76
         distribution: Ubuntu-24.04
         wsl-conf: |
           [interop]
@@ -67,7 +62,6 @@ runs:
 
     - name: Determining paths for common WSL usage (e.g. path to cmd, npm, git)
       id: wsl_paths
-      # Note: This executes outside of WSL.
       shell: bash
       run: |
         cmd_path=$(which cmd.exe)
@@ -79,6 +73,7 @@ runs:
         git_bin=$(which git)
         git_bin_wsl_path=$(wsl exec wslpath -u "$git_bin")
 
+        echo "wsl_home=$(wslpath -u "$HOME")" >> $GITHUB_OUTPUT
         echo "cmd_path=$cmd_wsl_path" >> $GITHUB_OUTPUT
         echo "npm_path=$npm_wls_path" >> $GITHUB_OUTPUT
         echo "tmp_path=$tmp_dir_wsl_path" >> $GITHUB_OUTPUT
@@ -113,10 +108,11 @@ runs:
 
     - name: Extract NVM inside WSL
       if: steps.cache-nvm.outputs.cache-hit == 'true'
-      run: |
-        mkdir -p ~/.nvm
-        tar -xzf /mnt/c/Users/runneradmin/.cache/wsl_nvm_cache.tar.gz -C ~/.nvm
       shell: wsl-bash {0}
+      run: |
+        cache_archive="${{steps.wsl_paths.outputs.wsl_home}}/.cache/wsl_nvm_cache.tar.gz"
+        mkdir -p ~/.nvm
+        tar -xzf "$cache_archive" -C ~/.nvm
 
     - name: Download NVM
       shell: wsl-bash {0}
@@ -128,19 +124,16 @@ runs:
       shell: wsl-bash {0}
       run: |
         export NVM_DIR="$HOME/.nvm"
-        # Note: Specify `--install` due to https://github.com/nvm-sh/nvm/issues/1985.
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
-
-        # Note: this is needed to load NVM in this step otherwise nvm will not be found.
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
         cd ${{steps.disk_path.outputs.repo}}
-
         nvm install
         npm i -g pnpm@10
 
     - name: Archive NVM inside WSL
-      run: |
-        tar -czf /mnt/c/Users/runneradmin/.cache/wsl_nvm_cache.tar.gz -C ~/.nvm .
       shell: wsl-bash {0}
+      run: |
+        mkdir ${{steps.wsl_paths.outputs.wsl_home}}/.cache
+        cache_archive="${{steps.wsl_paths.outputs.wsl_home}}/.cache/wsl_nvm_cache.tar.gz"
+        tar -czf "$cache_archive" -C ~/.nvm .
