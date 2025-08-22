@@ -38,6 +38,6 @@ runs:
         # Note: Bazel repository cache is located in system locations and cannot use
         # a shared cache between different runner operating systems.
         path: '${{ inputs.cache_dir }}/bazel_repo_cache'
-        key: bazel-cache-${{ runner.os }}-22-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel.lock') }}
+        key: bazel-cache-${{ runner.os }}-222-${{ hashFiles('**/WORKSPACE') }}-${{ hashFiles('**/MODULE.bazel.lock') }}
         restore-keys: |
-          bazel-cache-${{ runner.os }}-22
+          bazel-cache-${{ runner.os }}-222
