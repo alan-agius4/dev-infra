@@ -98,37 +98,47 @@ runs:
       env:
         WSLENV: 'GITHUB_OUTPUT/p'
       run: |
-        repo_path="$HOME/repo"
+        repo_path="~/repo"
         cp -R . $repo_path
 
         echo "repo=$repo_path" >> $GITHUB_OUTPUT
         echo "Repo path is: $repo_path"
 
-    - name: Cache for nvm, pnpm profile caches
-      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+    - name: Restore WSL NVM cache
+      id: cache-nvm
+      uses: actions/cache@v4
       with:
-        path: |
-          ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.nvm/
-          ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.npm/
-          ${{ steps.wsl_paths.outputs.wsl_root_path }}/root/.local/share/pnpm/store
-        key: "wsl-cache-${{hashFiles('**/.nvmrc')}}-${{ hashFiles('**/pnpm-lock.yaml') }}"
-        restore-keys: |
-          wsl-cache
+        path: wsl_nvm_cache.tar.gz
+        key: nvm-cache-${{ runner.os }}-${{hashFiles('**/.nvmrc')}}
 
-    - name: Setup nvm and install Node.js and pnpm
-      shell: wsl-bash {0}
+    - name: Extract npm cache inside WSL
+      if: steps.cache-nvm.outputs.cache-hit == 'true'
       run: |
-        export NVM_DIR="/root/.nvm"
+        mkdir -p ~/.nvm
+        tar -xzf /mnt/c/Users/runneradmin/wsl_nvm_cache.tar.gz -C ~/.nvm
+        nvm install
+      shell: wsl-bash {0}
 
-        # Install nvm only if it's not present (i.e., not restored from cache)
-        if [ ! -d "$NVM_DIR" ]; then
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-        fi
+    - name: Install dependencies in WSL
+      if: steps.cache-nvm.outputs.cache-hit == 'true'
+      run: |
+        cd /mnt/c/Users/runneradmin/work/${{ github.repository }}
+        nvm install
+      shell: wsl-bash {0}
 
-        # Load nvm and install the correct Node.js version from .nvmrc
-        . "$NVM_DIR/nvm.sh" --install
+    - name: Installing Node and pnpm (in WSL)
+      if: steps.cache-nvm.outputs.cache-hit !== 'true'
+      run: |
+        # Note: this is needed to load NVM in this step otherwise nvm will not be found.
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
         cd ${{steps.disk_path.outputs.repo}}
 
         nvm install
         npm i -g pnpm@10
+
+    - name: Archive npm cache inside WSL
+      run: |
+        tar -czf /mnt/c/Users/runneradmin/wsl_nvm_cache.tar.gz -C ~/.nvm .
+      shell: wsl-bash {0}

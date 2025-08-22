@@ -11,7 +11,7 @@ assert(bazelRcPath, 'bazelRcPath cannot be undefined.');
 assert(cachePath, 'cachePath cannot be undefined.');
 
 // Remove the cache WSL path D:/wsl_root/root/.cache -> root/.cache
-// Bazel run run inside WSL, and make it can use the linux path directly.
+// Bazel runs inside WSL so it does not work if we use the Windows host path.
 let normalizedCachePath = cachePath.replace(/\\/g, '/');
 normalizedCachePath = normalizedCachePath.replace(/^[A-Za-z]\:\/wsl_root\//, '/');
 
