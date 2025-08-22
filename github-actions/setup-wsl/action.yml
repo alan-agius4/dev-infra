@@ -115,7 +115,7 @@ runs:
         restore-keys: |
           wsl-cache
 
-    - name: Setup nvm and install Node.js
+    - name: Setup nvm and install Node.js and pnpm
       shell: wsl-bash {0}
       run: |
         export NVM_DIR="/root/.nvm"
@@ -127,3 +127,8 @@ runs:
 
         # Load nvm and install the correct Node.js version from .nvmrc
         . "$NVM_DIR/nvm.sh" --install
+
+        cd ${{steps.disk_path.outputs.repo}}
+
+        nvm install
+        npm i -g pnpm@10
