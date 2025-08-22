@@ -5,9 +5,7 @@ import fs from 'node:fs';
 // in the bazelrc file need to be escaled as otherwise those would escape
 // followed characters that weren't supposed to be escaped.
 const cachePath = process.argv[2];
-const bazelRcPath = process.argv[3];
 
-assert(bazelRcPath, 'bazelRcPath cannot be undefined.');
 assert(cachePath, 'cachePath cannot be undefined.');
 
 // Remove the cache WSL path D:/wsl_root/root/.cache -> root/.cache
