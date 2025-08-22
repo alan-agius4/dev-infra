@@ -126,10 +126,19 @@ runs:
         nvm install
       shell: wsl-bash {0}
 
-    - name: Installing Node and pnpm (in WSL)
+    - name: Download NVM
       shell: wsl-bash {0}
       if: steps.cache-nvm.outputs.cache-hit != 'true'
       run: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+    - name: Setup NVM
+      shell: wsl-bash {0}
+      run: |
+        export NVM_DIR="$HOME/.nvm"
+        # Note: Specify `--install` due to https://github.com/nvm-sh/nvm/issues/1985.
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
+
         # Note: this is needed to load NVM in this step otherwise nvm will not be found.
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
