@@ -127,7 +127,7 @@ runs:
       shell: wsl-bash {0}
 
     - name: Installing Node and pnpm (in WSL)
-      if: steps.cache-nvm.outputs.cache-hit !== 'true'
+      if: steps.cache-nvm.outputs.cache-hit != 'true'
       run: |
         # Note: this is needed to load NVM in this step otherwise nvm will not be found.
         export NVM_DIR="$HOME/.nvm"
