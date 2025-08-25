@@ -27,14 +27,16 @@ outputs:
     value: ${{steps.wsl_paths.outputs.tmp_path}}
   wsl_root_path:
     description: Windows path pointing to the WSL file system root (using a symlink).
-    value: D:\wsl_root
+    value: ${{steps.wsl_paths.outputs.wsl_root_path}}
   wsl_root_unc_path:
     description: UNC Windows path pointing to the WSL file system root.
     value: \\\\wsl.localhost\Ubuntu-24.04
   repo_path:
     description: Path to the copied repository directory (as Unix wsl path)
     value: ${{steps.disk_path.outputs.repo}}
-
+  pnpm_store_path:
+    description: Path of the PNPM store path in WSL.
+    value: ${{steps.setup_nvm.outputs.pnpm_store_path}}
 runs:
   using: composite
   steps:
@@ -78,6 +80,7 @@ runs:
         git_bin=$(which git)
         git_bin_wsl_path=$(wsl exec wslpath -u "$git_bin")
 
+        echo "wsl_root_path=D:\\wsl_root" >> $GITHUB_OUTPUT
         echo "wsl_home=$(wsl exec wslpath -u "$HOME")" >> $GITHUB_OUTPUT
         echo "cmd_path=$cmd_wsl_path" >> $GITHUB_OUTPUT
         echo "npm_path=$npm_wls_path" >> $GITHUB_OUTPUT
@@ -90,7 +93,7 @@ runs:
 
     - name: Create link to WSL drive
       shell: powershell
-      run: New-Item -ItemType SymbolicLink -Path "D:\wsl_root" -Target "\\wsl.localhost\Ubuntu-24.04"
+      run: New-Item -ItemType SymbolicLink -Path "${{steps.wsl_paths.outputs.wsl_root_path}}" -Target "\\wsl.localhost\Ubuntu-24.04"
 
     - name: Linking workspace into WSL for fast disk access
       shell: wsl-bash {0}
@@ -129,6 +132,7 @@ runs:
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --install
 
     - name: Setup NVM inside WSL
+      id: setup_nvm
       shell: wsl-bash {0}
       run: |
         # Note: this is needed to load NVM in this step otherwise nvm will not be found.
@@ -140,6 +144,9 @@ runs:
         nvm install
         npm i -g pnpm@10
 
+        pnpm_store_path=$(wsl exec wslpath -u pnpm store path)
+        echo "pnpm_store_path=$pnpm_store_path" >> $GITHUB_OUTPUT
+
     - name: Archive NVM inside WSL
       shell: wsl-bash {0}
       if: steps.cache-nvm.outputs.cache-hit != 'true'
@@ -148,3 +155,9 @@ runs:
         mkdir -p "${wsl_home}/.cache"
         cache_archive="${wsl_home}/.cache/wsl_nvm_cache.tar.gz"
         tar -czf "$cache_archive" -C ~/.nvm .
+
+    - name: PNPM cache
+      uses: actions/cache@v4
+      with:
+        path: ${{steps.wsl_paths.outputs.wsl_root_path}}${{steps.setup_nvm.outputs.pnpm_store_path}}
+        key: wsl-pnpm-cache-v1-${{hashFiles('**/pnpm-lock.yaml')}}
