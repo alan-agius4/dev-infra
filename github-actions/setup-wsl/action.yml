@@ -134,6 +134,8 @@ runs:
     - name: Setup NVM inside WSL
       id: setup_nvm
       shell: wsl-bash {0}
+      env:
+        WSLENV: 'GITHUB_OUTPUT/p'
       run: |
         # Note: this is needed to load NVM in this step otherwise nvm will not be found.
         export NVM_DIR="$HOME/.nvm"
@@ -144,7 +146,7 @@ runs:
         nvm install
         npm i -g pnpm@10
 
-        pnpm_store_path=$(wsl exec wslpath -u pnpm store path)
+        pnpm_store_path=$(pnpm store path)
         echo "pnpm_store_path=$pnpm_store_path" >> $GITHUB_OUTPUT
 
     - name: Archive NVM inside WSL
