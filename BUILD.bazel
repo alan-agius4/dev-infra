@@ -1,20 +1,6 @@
-load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@devinfra_npm//:defs.bzl", "npm_link_all_packages")
-load("//bazel/validation:defs.bzl", "validate_ts_version_matching")
+load("@aspect_rules_js//js:defs.bzl", "js_test")
 
-npm_link_all_packages()
-
-ts_config(
-    name = "tsconfig",
-    src = "tsconfig.json",
-    visibility = ["//visibility:public"],
-)
-
-exports_files([
-    "package.json",
-])
-
-validate_ts_version_matching(
-    module_lock_file = "MODULE.bazel.lock",
-    package_json = "package.json",
+js_test(
+    entry_point = ":test.js",
+    name = "test",
 )

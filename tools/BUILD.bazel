@@ -1,7 +1,0 @@
-package(default_visibility = ["//visibility:public"])
-
-# Detect if the build is running with stamping enabled.
-config_setting(
-    name = "stamp",
-    values = {"stamp": "true"},
-)

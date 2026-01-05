@@ -1,69 +1,9 @@
-"""Rules/toolchains for devinfra with Bazel."""
-
-module(
-    name = "devinfra",
-)
-
-register_toolchains(
-    "//bazel/git-toolchain:git_linux_toolchain",
-    "//bazel/git-toolchain:git_macos_x86_toolchain",
-    "//bazel/git-toolchain:git_macos_arm64_toolchain",
-)
-
-bazel_dep(name = "yq.bzl", version = "0.3.2")
-bazel_dep(name = "tar.bzl", version = "0.7.0")
-bazel_dep(name = "aspect_bazel_lib", version = "2.22.0")
-bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "aspect_rules_js", version = "2.8.3")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
-bazel_dep(name = "aspect_rules_jasmine", version = "2.0.2")
-bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "aspect_rules_esbuild", version = "0.25.0")
-bazel_dep(name = "aspect_rules_ts", version = "3.8.1")
+module(name = "devinfra")
 bazel_dep(name = "rules_nodejs", version = "6.6.2")
-bazel_dep(name = "rules_browsers")
-git_override(
-    module_name = "rules_browsers",
-    commit = "8ef3e996d5fc040a35770f860987d8b9cad8ef3d",
-    remote = "https://github.com/devversion/rules_browsers.git",
-)
-
-bazel_dep(name = "rules_sass")
-git_override(
-    module_name = "rules_sass",
-    commit = "1184a80751a21af8348f308abc5b38a41f26850e",
-    remote = "https://github.com/devversion/rules_sass.git",
-)
-
-bazel_dep(name = "rules_angular")
-git_override(
-    module_name = "rules_angular",
-    commit = "7133b97252508f8528e5c5818a9a73cacc2e2a0e",
-    remote = "https://github.com/devversion/rules_angular.git",
-)
-
-yq = use_extension("@yq.bzl//yq:extensions.bzl", "yq")
-use_repo(yq, "yq_toolchains")
-
-rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
-rules_ts_ext.deps(
-    # Obtained by: curl --silent https://registry.npmjs.org/typescript/5.9.3 | jq -r '.dist.integrity'
-    ts_integrity = "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
-    ts_version = "5.9.3",
-)
-use_repo(rules_ts_ext, "npm_typescript")
+bazel_dep(name = "aspect_rules_js", version = "2.8.3")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version_from_nvmrc = "//:.nvmrc")
-use_repo(node, "nodejs_toolchains")
-
-rules_angular = use_extension("@rules_angular//setup:extensions.bzl", "rules_angular")
-rules_angular.setup(
-    name = "dev_infra_rules_angular_configurable_deps",
-    angular_compiler_cli = "//:node_modules/@angular/compiler-cli",
-    typescript = "//:node_modules/typescript",
-)
-use_repo(rules_angular, rules_angular_configurable_deps = "dev_infra_rules_angular_configurable_deps")
 
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
 pnpm.pnpm(
@@ -74,34 +14,12 @@ use_repo(pnpm, "pnpm")
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
-    name = "devinfra_npm",
+    name = "npm",
     data = [
-        "@devinfra//.github/local-actions:package.json",
-        "@devinfra//.github/local-actions/branch-manager:package.json",
-        "@devinfra//.github/local-actions/labels-sync:package.json",
-        "@devinfra//.github/local-actions/lock-closed:package.json",
-        "@devinfra//:package.json",
-        "@devinfra//:pnpm-workspace.yaml",
-        "@devinfra//apps/code-of-conduct:package.json",
-        "@devinfra//apps/functions:package.json",
-        "@devinfra//bazel:package.json",
-        "@devinfra//bazel/spec-bundling/test:package.json",
-        "@devinfra//github-actions:package.json",
-        "@devinfra//github-actions/bazel/configure-remote:package.json",
-        "@devinfra//github-actions/branch-manager:package.json",
-        "@devinfra//github-actions/browserstack:package.json",
-        "@devinfra//github-actions/feature-request:package.json",
-        "@devinfra//github-actions/google-internal-tests:package.json",
-        "@devinfra//github-actions/org-file-sync:package.json",
-        "@devinfra//github-actions/post-approval-changes:package.json",
-        "@devinfra//github-actions/previews/pack-and-upload-artifact:package.json",
-        "@devinfra//github-actions/previews/upload-artifacts-to-firebase:package.json",
-        "@devinfra//github-actions/pull-request-labeling:package.json",
-        "@devinfra//github-actions/saucelabs:package.json",
-        "@devinfra//github-actions/unified-status-check:package.json",
-        "@devinfra//ng-dev:package.json",
+        "//:package.json",
+        "//:pnpm-workspace.yaml",
     ],
-    npmrc = "@devinfra//:.npmrc",
-    pnpm_lock = "@devinfra//:pnpm-lock.yaml",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
 )
-use_repo(npm, "devinfra_npm")
+use_repo(npm, "npm")

@@ -1,2 +1,0 @@
-#!/bin/sh
-pnpm --silent ng-dev commit-message pre-commit-validate --file $1 2>/dev/null

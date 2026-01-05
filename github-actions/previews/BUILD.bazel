@@ -1,9 +1,0 @@
-load("//tools:defaults.bzl", "ts_project")
-
-package(default_visibility = ["//github-actions/previews:__subpackages__"])
-
-ts_project(
-    name = "constants_lib",
-    srcs = ["constants.ts"],
-    tsconfig = "//github-actions:tsconfig",
-)
